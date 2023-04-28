@@ -24,6 +24,7 @@ static void test_Counted() {
     };
     TEST_CALL(f_move_counted);
 
+    TestCounted::reset_count();
     auto f_copy_counted1 = [&]() {
         {
             TestCounted c1;
@@ -36,6 +37,7 @@ static void test_Counted() {
     };
     TEST_CALL(f_copy_counted1);
 
+    TestCounted::reset_count();
     auto f_copy_counted2 = [&]() {
         TestCounted c1;
         {
@@ -72,6 +74,7 @@ static void test_result_T() {
     };
     TEST_CALL(f_result_set_lvalue);
 
+    TestCounted::reset_count();
     auto f_result_set_rvalue =[&]() {
         Result<TestCounted> res;
         REQUIRE(! res.has_value());
@@ -88,6 +91,7 @@ static void test_result_T() {
     };
     TEST_CALL(f_result_set_rvalue);
 
+    TestCounted::reset_count();
     auto f_lvalue_result = [&]() {
         Result<TestCounted> res;
         res.set_value(TestCounted{});
@@ -112,6 +116,7 @@ static void test_result_T() {
     };
     TEST_CALL(f_lvalue_result);
 
+    TestCounted::reset_count();
     auto f_rvalue_result =[&]() {
         Result<TestCounted> res;
         res.set_value(TestCounted{});
@@ -151,6 +156,7 @@ static void test_Counted_for_Task() {
     };
     TEST_CALL(f_return_a_counted);
 
+    TestCounted::reset_count();
     auto f_return_a_lvalue_counted =[&]() {
         asyncio::run([&]() -> Task<> {
             auto t = build_count();
@@ -176,6 +182,7 @@ static void test_Counted_for_Task() {
     };
     TEST_CALL(f_return_a_lvalue_counted);
 
+    TestCounted::reset_count();
     auto f_rvalue_task_get_result= [&]() {
         auto c = asyncio::run(build_count());
         REQUIRE(TestCounted::alive_counts() == 1);
@@ -185,6 +192,7 @@ static void test_Counted_for_Task() {
     };
     TEST_CALL(f_rvalue_task_get_result);
 
+    TestCounted::reset_count();
     auto f_lvalue_task_get_result =[&]() {
         auto t = build_count();
         auto c = asyncio::run(t);
