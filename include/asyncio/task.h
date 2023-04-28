@@ -56,20 +56,26 @@ struct Task: private NonCopyable {
         coro_handle self_coro_ {};
     };
 
+    template <bool move>
     struct Awaiter : AwaiterBase {
         decltype(auto) await_resume() const {
             if (!AwaiterBase::self_coro_) [[unlikely]]
             { throw InvalidFuture{}; }
-            return AwaiterBase::self_coro_.promise().result();
+            if constexpr (move) {
+                return std::move(AwaiterBase::self_coro_.promise()).result();
+            }
+            else {
+                return AwaiterBase::self_coro_.promise().result();
+            }
         }
     };
 
     auto operator co_await() const & noexcept {
-        return Awaiter {handle_};
+        return Awaiter<false> {handle_};
     }
 
     auto operator co_await() const && noexcept {
-        return Awaiter {handle_};
+        return Awaiter<true> {handle_};
     }
 
     struct promise_type: CoroHandle, Result<R> {
