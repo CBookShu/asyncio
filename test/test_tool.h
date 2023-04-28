@@ -13,8 +13,8 @@
     auto b = std::chrono::high_resolution_clock::now();\
     f();\
     auto e = std::chrono::high_resolution_clock::now();\
-    auto diff  = std::chrono::duration_cast<std::chrono::nanoseconds>(e-b).count();\
-    std::cout << "calc "<< #f << " end  cost:" << diff << "ns" << std::endl;\
+    auto diff  = std::chrono::duration_cast<std::chrono::milliseconds>(e-b).count();\
+    std::cout << "calc "<< #f << " end  cost:" << diff << "ms" << std::endl;\
 }while(0)
 
 #define TEST_CALL_COUNT(f, c)    do {\
@@ -22,10 +22,10 @@
     auto b = std::chrono::high_resolution_clock::now();\
     for(std::int64_t i = 0; i < c; ++i) f();\
     auto e = std::chrono::high_resolution_clock::now();\
-    auto diff  = std::chrono::duration_cast<std::chrono::nanoseconds>(e-b).count();\
+    auto diff  = std::chrono::duration_cast<std::chrono::milliseconds>(e-b).count();\
     std::cout << "calc "<< #f << " end" << std::endl;\
-    std::cout << "total cost" << diff << std::endl;\
-    std::cout << "average cost:" << diff/c << "ns" << std::endl;\
+    std::cout << "total cost" << diff << "ms" << std::endl;\
+    std::cout << "average cost:" << diff/c << "ms" << std::endl;\
 }while(0)
 
 #define REQUIRE(exp)    assert((exp))

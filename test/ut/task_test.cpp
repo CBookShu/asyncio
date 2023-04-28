@@ -145,6 +145,7 @@ static void test_schedule_task() {
             auto handle = asyncio::schedule_task(f());
             REQUIRE(co_await handle == 0xababcaab);
             REQUIRE(co_await handle == 0xababcaab);
+            co_return;
         }());
         REQUIRE(called);
     }

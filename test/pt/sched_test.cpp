@@ -28,6 +28,24 @@ static void lots_of_synchronous_completions() {
     };
     TEST_CALL_COUNT(run, 20);
 }
+
+static void lots_of_normal_calc() {
+    auto completes_synchronously = []() -> int {
+        return 1;
+    };
+    auto main = [&]() {
+        int sum = 0;
+        for (int i = 0; i < 1'000'000; ++i) {
+            sum += completes_synchronously();
+        }
+        assert(sum == 1'000'000);
+    };
+    auto run = [&]() {
+        main();
+    };
+    TEST_CALL_COUNT(run, 20);
+}
+
 static void sched_simple_test() {
     auto main = [&]() -> Task<int> {
         co_return 1;
@@ -41,6 +59,7 @@ static void sched_simple_test() {
 
 int main() {
     TEST_CALL(lots_of_synchronous_completions);
+    TEST_CALL(lots_of_normal_calc);
     TEST_CALL(sched_simple_test);
     return 0;
 }
