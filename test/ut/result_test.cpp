@@ -213,6 +213,17 @@ static void test_pass_parameters_to_the_coroutine_frame() {
     TestCounted::reset_count();
 
     auto f_pass_by_rvalue = [&]() {
+#if defined(_WIN32)
+        // win32 这里临时的TestCounted会进行一次move；跟gcc表现不一致无法跑通该测试用例
+        auto coro = [](TestCounted count) -> Task<> {
+            REQUIRE(count.alive_counts() == 1);
+            co_return;
+        };
+        asyncio::run(coro(TestCounted{}));
+        REQUIRE(TestCounted::default_construct_counts == 1);
+        REQUIRE(TestCounted::move_construct_counts == 1);
+        REQUIRE(TestCounted::alive_counts() == 0);
+#else
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(count.alive_counts() == 2);
             co_return;
@@ -221,6 +232,7 @@ static void test_pass_parameters_to_the_coroutine_frame() {
         REQUIRE(TestCounted::default_construct_counts == 1);
         REQUIRE(TestCounted::move_construct_counts == 1);
         REQUIRE(TestCounted::alive_counts() == 0);
+#endif
     };
     TEST_CALL(f_pass_by_rvalue);
 
@@ -229,7 +241,12 @@ static void test_pass_parameters_to_the_coroutine_frame() {
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(TestCounted::copy_construct_counts == 1);
             REQUIRE(TestCounted::move_construct_counts == 1);
+#if defined(_WIN32)
+            // win32 会在调用coro(count) 的时候，把中间无法获取到的将亡值自动释放
+            REQUIRE(count.alive_counts() == 2);
+#else
             REQUIRE(count.alive_counts() == 3);
+#endif
             co_return;
         };
         TestCounted count;
@@ -248,7 +265,12 @@ static void test_pass_parameters_to_the_coroutine_frame() {
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(TestCounted::copy_construct_counts == 0);
             REQUIRE(TestCounted::move_construct_counts == 2);
+#if defined(_WIN32)
+            // win32 会在调用coro(count) 的时候，把中间无法获取到的将亡值自动释放
+            REQUIRE(count.alive_counts() == 2);
+#else
             REQUIRE(count.alive_counts() == 3);
+#endif
             REQUIRE(count.id_ != -1);
             co_return;
         };
