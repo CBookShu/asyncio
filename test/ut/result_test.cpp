@@ -224,6 +224,7 @@ static void test_pass_parameters_to_the_coroutine_frame() {
     };
     TEST_CALL(f_pass_by_rvalue);
 
+    TestCounted::reset_count();
     auto f_pass_by_lvalue = [&]() {
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(TestCounted::copy_construct_counts == 1);
@@ -242,6 +243,7 @@ static void test_pass_parameters_to_the_coroutine_frame() {
     };
     TEST_CALL(f_pass_by_lvalue);
 
+    TestCounted::reset_count();
     auto f_pass_by_xvalue =[&]() {
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(TestCounted::copy_construct_counts == 0);
@@ -261,6 +263,7 @@ static void test_pass_parameters_to_the_coroutine_frame() {
     };
     TEST_CALL(f_pass_by_xvalue);
 
+    TestCounted::reset_count();
     auto f_pass_by_lvalue_ref = [&] {
         TestCounted count;
         auto coro = [&](TestCounted& cnt) -> Task<> {
@@ -275,6 +278,7 @@ static void test_pass_parameters_to_the_coroutine_frame() {
     };
     TEST_CALL(f_pass_by_lvalue_ref);
 
+    TestCounted::reset_count();
     auto f_pass_by_rvalue_ref =[&]() {
         auto coro = [](TestCounted&& count) -> Task<> {
             REQUIRE(count.alive_counts() == 1);
