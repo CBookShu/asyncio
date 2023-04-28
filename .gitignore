@@ -10,3 +10,6 @@ compile_commands.json
 /result
 *.log
 .gdb_history
+.xmake
+.vs
+*.user
