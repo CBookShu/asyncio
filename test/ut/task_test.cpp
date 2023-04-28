@@ -29,32 +29,36 @@ Task<> coro_depth_n(std::vector<int>& result) {
 }
 
 static void test_Task_await() {
-    std::vector<int> result;
     GIVEN("simple await") {
+        std::vector<int> result;
         asyncio::run(coro_depth_n<0>(result));
         std::vector<int> expected { 0 };
         REQUIRE(result == expected);
     }
 
     GIVEN("nest await") {
+        std::vector<int> result;
         asyncio::run(coro_depth_n<1>(result));
         std::vector<int> expected { 1, 0, 10 };
         REQUIRE(result == expected);
     }
 
     GIVEN("3 depth await") {
+        std::vector<int> result;
         asyncio::run(coro_depth_n<2>(result));
         std::vector<int> expected { 2, 1, 0, 10, 20 };
         REQUIRE(result == expected);
     }
 
     GIVEN("4 depth await") {
+        std::vector<int> result;
         asyncio::run(coro_depth_n<3>(result));
         std::vector<int> expected { 3, 2, 1, 0, 10, 20, 30 };
         REQUIRE(result == expected);
     }
 
     GIVEN("5 depth await") {
+        std::vector<int> result;
         asyncio::run(coro_depth_n<4>(result));
         std::vector<int> expected { 4, 3, 2, 1, 0, 10, 20, 30, 40 };
         REQUIRE(result == expected);
@@ -140,6 +144,7 @@ static void test_schedule_task() {
         REQUIRE(! called);
     }
 
+    called = false;
     GIVEN("run and await created task") {
         asyncio::run([&]() -> Task<> {
             auto handle = asyncio::schedule_task(f());
@@ -150,6 +155,7 @@ static void test_schedule_task() {
         REQUIRE(called);
     }
 
+    called = false;
     GIVEN("cancel and await created task") {
         asyncio::run([&]() -> Task<> {
             auto handle = asyncio::schedule_task(f());
@@ -212,7 +218,8 @@ static void test_gather() {
         REQUIRE(is_called);
     }
 
-   SECTION("test gather of gather") {
+    is_called = false;
+    SECTION("test gather of gather") {
        REQUIRE(!is_called);
        asyncio::run([&]() -> Task<> {
            auto&& [ab, c, _void] = co_await asyncio::gather(
@@ -229,8 +236,9 @@ static void test_gather() {
        }());
        REQUIRE(is_called);
    }
-
-   SECTION("test detach gather") {
+    
+    is_called = false;
+    SECTION("test detach gather") {
        REQUIRE(! is_called);
        auto res = asyncio::gather(
            factorial("A", 2),
@@ -245,7 +253,8 @@ static void test_gather() {
        REQUIRE(is_called);
    }
 
-   SECTION("test exception gather") {
+    is_called = false;
+    SECTION("test exception gather") {
        REQUIRE(!is_called);
        REQUIRE_THROWS_AS(asyncio::run([&]() -> Task<std::tuple<double, int>> {
            is_called = true;
@@ -283,6 +292,7 @@ static void test_sleep() {
         REQUIRE(call_time == 2);
     }
 
+    call_time = 0;
     GIVEN("schedule sleep and cancel") {
         auto async_main = [&]() -> Task<> {
             auto task1 = schedule_task(say_after(100ms, "hello"));
@@ -300,6 +310,7 @@ static void test_sleep() {
         REQUIRE(call_time == 1);
     }
 
+    call_time = 0;
     GIVEN("schedule sleep and cancel, delay exit") {
         auto async_main = [&]() -> Task<> {
             auto task1 = schedule_task(say_after(100ms, "hello"));
@@ -356,6 +367,7 @@ static void test_timeout() {
         REQUIRE(is_called);
     }
 
+    is_called = false;
     SECTION("wait_for with sleep") {
         REQUIRE(! is_called);
         auto wait_for_rvalue = wait_for(sleep(30ms), 50ms);
@@ -367,6 +379,7 @@ static void test_timeout() {
         REQUIRE(is_called);
     }
 
+    is_called = false;
     SECTION("wait_for with gather") {
         REQUIRE(! is_called);
         asyncio::run([&]() -> Task<> {
@@ -378,6 +391,7 @@ static void test_timeout() {
         REQUIRE(is_called);
     }
 
+    is_called = false;
     SECTION("notime out with exception") {
         REQUIRE_THROWS_AS(
             asyncio::run([]() -> Task<> {
@@ -385,12 +399,14 @@ static void test_timeout() {
             }()), std::overflow_error);
     }
 
+    is_called = false;
     SECTION("timeout error") {
         REQUIRE(! is_called);
         REQUIRE_THROWS_AS(asyncio::run(wait_for_test(200ms, 100ms)), TimeoutError);
         REQUIRE(! is_called);
     }
 
+    is_called = false;
     SECTION("wait for awaitable") {
         asyncio::run([]() -> Task<> {
             co_await wait_for(std::suspend_always{}, 1s);
