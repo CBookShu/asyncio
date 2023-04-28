@@ -9,11 +9,17 @@
 #include <asyncio/selector/event.h>
 #include <asyncio/noncopyable.h>
 #include <asyncio/task.h>
+#if defined(_WIN32)
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <MSWSock.h>
+#else
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <netdb.h>
+#endif
+#include <fcntl.h>
 #include <utility>
 #include <vector>
 
@@ -55,15 +61,17 @@ namespace socket {
 
 struct Stream: NonCopyable {
     using Buffer = std::vector<char>;
-    Stream(int fd): read_fd_(fd), write_fd_(dup(fd)) {
+    using ssize_t = long int;
+
+    Stream(Socket_t fd): read_fd_(fd), write_fd_(fd) {
         if (read_fd_ >= 0) {
             socklen_t addrlen = sizeof(sock_info_);
             getsockname(read_fd_, reinterpret_cast<sockaddr*>(&sock_info_), &addrlen);
         }
     }
-    Stream(int fd, const sockaddr_storage& sockinfo): read_fd_(fd), write_fd_(dup(fd)), sock_info_(sockinfo) { }
-    Stream(Stream&& other): read_fd_{std::exchange(other.read_fd_, -1) },
-                            write_fd_{std::exchange(other.write_fd_, -1) },
+    Stream(Socket_t fd, const sockaddr_storage& sockinfo): read_fd_(fd), write_fd_(fd), sock_info_(sockinfo) { }
+    Stream(Stream&& other) noexcept : read_fd_{std::exchange(other.read_fd_, INVALID_SOCKET) },
+                            write_fd_{std::exchange(other.write_fd_, INVALID_SOCKET) },
                             read_ev_{ std::exchange(other.read_ev_, {}) },
                             write_ev_{ std::exchange(other.write_ev_, {}) },
                             read_awaiter_{ std::move(other.read_awaiter_) },
@@ -74,10 +82,10 @@ struct Stream: NonCopyable {
     void close() {
         read_awaiter_.destroy();
         write_awaiter_.destroy();
-        if (read_fd_ > 0) { ::close(read_fd_); }
-        if (write_fd_ > 0) { ::close(write_fd_); }
-        read_fd_ = -1;
-        write_fd_ = -1;
+        if (read_fd_ != INVALID_SOCKET) { ::close(read_fd_); }
+        //if (write_fd_ > 0) { ::close(write_fd_); }
+        read_fd_ = INVALID_SOCKET;
+        write_fd_ = INVALID_SOCKET;
     }
 
     Task<Buffer> read(ssize_t sz = -1) {
@@ -85,7 +93,7 @@ struct Stream: NonCopyable {
 
         Buffer result(sz, 0);
         co_await read_awaiter_;
-        sz = ::read(read_fd_, result.data(), result.size());
+        sz = ::recv(read_fd_, result.data(), result.size(), 0);
         if (sz == -1) {
             throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
         }
@@ -99,7 +107,7 @@ struct Stream: NonCopyable {
         while (total_write < buf.size()) {
             // FIXME: how to handle write event?
             // co_await write_awaiter_;
-            ssize_t sz = ::write(write_fd_, buf.data() + total_write, buf.size() - total_write);
+            ssize_t sz = ::send(write_fd_, buf.data() + total_write, buf.size() - total_write, 0);
             if (sz == -1) {
                 throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
             }
@@ -120,7 +128,7 @@ private:
         int total_read = 0;
         do {
             co_await read_awaiter_;
-            current_read = ::read(read_fd_, result.data() + total_read, chunk_size);
+            current_read = ::recv(read_fd_, result.data() + total_read, chunk_size, 0);
             if (current_read == -1) {
                 throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
             }
@@ -131,8 +139,8 @@ private:
         co_return result;
     }
 private:
-    int read_fd_{-1};
-    int write_fd_{-1};
+    Socket_t read_fd_{ INVALID_SOCKET };
+    Socket_t write_fd_{ INVALID_SOCKET };
     Event read_ev_ { .fd = read_fd_, .flags = Event::Flags::EVENT_READ };
     Event write_ev_ { .fd = write_fd_, .flags = Event::Flags::EVENT_WRITE };
     EventLoop::WaitEventAwaiter read_awaiter_ { get_event_loop().wait_event(read_ev_) };

@@ -1,8 +1,6 @@
 //
 // Created by netcan on 2021/10/11.
 //
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/catch_approx.hpp>
 #include <asyncio/runner.h>
 #include <asyncio/callstack.h>
 #include <asyncio/task.h>
@@ -14,9 +12,9 @@
 #include <asyncio/start_server.h>
 #include <asyncio/open_connection.h>
 #include <functional>
+#include "../test_tool.h"
 
 using namespace ASYNCIO_NS;
-using namespace Catch;
 
 template<typename...> struct dump;
 template<size_t N>
@@ -28,7 +26,7 @@ Task<> coro_depth_n(std::vector<int>& result) {
     }
 }
 
-SCENARIO("test Task await") {
+static void test_Task_await() {
     std::vector<int> result;
     GIVEN("simple await") {
         asyncio::run(coro_depth_n<0>(result));
@@ -65,7 +63,7 @@ Task<int64_t> square(int64_t x) {
     co_return x * x;
 }
 
-SCENARIO("Task<> test") {
+static void Task__test() {
     GIVEN("co_await empty task<>") {
         bool called {false};
         asyncio::run([&]() -> Task<> {
@@ -82,7 +80,7 @@ SCENARIO("Task<> test") {
 }
 
 
-SCENARIO("test Task await result value") {
+static void test_Task_await_result_value() {
     GIVEN("square_sum 3, 4") {
         auto square_sum = [&](int x, int y) -> Task<int> {
             auto tx = square(x);
@@ -107,7 +105,7 @@ SCENARIO("test Task await result value") {
     }
 }
 
-SCENARIO("test Task for loop") {
+static void test_ask_for_loop() {
     auto sequense = [](int64_t n) -> Task<int64_t> {
         int64_t result = 1;
         int64_t sign = -1;
@@ -125,7 +123,7 @@ SCENARIO("test Task for loop") {
 }
 
 
-SCENARIO("test schedule_task") {
+static void test_schedule_task() {
     bool called{false};
     auto f = [&]() -> Task<int> {
         called = true;
@@ -164,25 +162,25 @@ auto int_div(int a, int b) -> Task<double> {
     co_return a / b;
 };
 
-SCENARIO("test exception") {
-    REQUIRE(asyncio::run(int_div(4, 2)) == Approx(2));
+static void test_exception() {
+    APRROX_EQ(asyncio::run(int_div(4, 2)), 2);
     REQUIRE_THROWS_AS(asyncio::run(int_div(4, 0)), std::overflow_error);
 }
 
-SCENARIO("test gather") {
+static void test_gather() {
     bool is_called = false;
     auto factorial = [&](std::string_view name, int number) -> Task<int> {
         int r = 1;
         for (int i = 2; i <= number; ++i) {
-            fmt::print("Task {}: Compute factorial({}), currently i={}...\n", name, number, i);
+            printf("Task %s: Compute factorial(%d), currently i=%d...\n", name.data(), number, i);
             co_await asyncio::sleep(0.1s);
             r *= i;
         }
-        fmt::print("Task {}: factorial({}) = {}\n", name, number, r);
+        printf("Task %s: factorial(%d) = %d\n", name.data(), number, r);
         co_return r;
     };
     auto test_void_func = []() -> Task<> {
-        fmt::print("this is a void value\n");
+        printf("this is a void value\n");
         co_return;
     };
 
@@ -257,11 +255,11 @@ SCENARIO("test gather") {
    }
 }
 
-SCENARIO("test sleep") {
+static void test_sleep() {
     size_t call_time = 0;
     auto say_after = [&](auto delay, std::string_view what) -> Task<> {
         co_await asyncio::sleep(delay);
-        fmt::print("{}\n", what);
+        printf("%s\n", what.data());
         ++call_time;
     };
 
@@ -319,7 +317,7 @@ SCENARIO("test sleep") {
     }
 }
 
-SCENARIO("cancel a infinite loop coroutine") {
+static void cancel_a_infinite_loop_coroutine() {
     int count = 0;
     asyncio::run([&]() -> Task<>{
         auto inf_loop = [&]() -> Task<> {
@@ -336,11 +334,11 @@ SCENARIO("cancel a infinite loop coroutine") {
     REQUIRE(count < 10);
 }
 
-SCENARIO("test timeout") {
+static void test_timeout() {
     bool is_called = false;
     auto wait_duration = [&](auto duration) -> Task<int> {
         co_await sleep(duration);
-        fmt::print("wait_duration finished\n");
+        printf("wait_duration finished\n");
         is_called = true;
         co_return 0xbabababc;
     };
@@ -398,7 +396,7 @@ SCENARIO("test timeout") {
     }
 }
 
-SCENARIO("echo server & client") {
+static void echo_server___client() {
     bool is_called = false;
     constexpr std::string_view message = "hello world!";
 
@@ -434,5 +432,22 @@ SCENARIO("echo server & client") {
     REQUIRE(is_called);
 }
 
-SCENARIO("test") {
+static void test() {
+}
+
+int main() {
+    TEST_CALL(test_Task_await);
+    TEST_CALL(Task__test);
+    TEST_CALL(test_Task_await_result_value);
+    TEST_CALL(test_ask_for_loop);
+    TEST_CALL(test_schedule_task);
+    TEST_CALL(test_exception);
+    TEST_CALL(test_gather);
+    TEST_CALL(test_sleep);
+    TEST_CALL(cancel_a_infinite_loop_coroutine);
+    TEST_CALL(test_timeout);
+    TEST_CALL(echo_server___client);
+    TEST_CALL(test);
+
+    return 0;
 }

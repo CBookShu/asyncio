@@ -12,9 +12,25 @@
 #if defined(__APPLE__)
     #include <sys/event.h>
     using Flags_t = int16_t;
+    using Socket_t = int;
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET -1
+#endif
 #elif defined(__linux__)
     #include <sys/epoll.h>
     using Flags_t = uint32_t;
+    using Socket_t = int;
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET -1
+#endif
+#elif defined(_WIN32)
+    #include <WinSock2.h>
+    using Flags_t = int16_t;
+    using Socket_t = SOCKET;
+#define close   closesocket
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET -1
+#endif
 #else
     #error "Support only Linux & MacOS!"
 #endif
@@ -28,12 +44,15 @@ struct Event {
     #elif defined(__linux__)
         EVENT_READ = EPOLLIN,
         EVENT_WRITE = EPOLLOUT
+    #elif defined(_WIN32)
+        EVENT_READ = 1,
+        EVENT_WRITE = 2,
     #else
         #error "Support only Linux & MacOS!"
     #endif
     };
 
-    int fd;
+    Socket_t fd;
     Flags flags;
     HandleInfo handle_info;
 };

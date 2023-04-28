@@ -1,18 +1,18 @@
 //
 // Created by netcan on 2021/11/24.
 //
-#include <catch2/catch_test_macros.hpp>
 #include <asyncio/result.h>
 #include <asyncio/runner.h>
 #include <asyncio/task.h>
 #include "counted.h"
+#include "../test_tool.h"
 
 using namespace ASYNCIO_NS;
 
-SCENARIO("test Counted") {
+static void test_Counted() {
     using TestCounted = Counted<default_counted_policy>;
     TestCounted::reset_count();
-    GIVEN("move counted") {
+    auto f_move_counted = [&](){
         {
             TestCounted c1;
             TestCounted c2(std::move(c1));
@@ -21,9 +21,10 @@ SCENARIO("test Counted") {
             REQUIRE(TestCounted::alive_counts() == 2);
         }
         REQUIRE(TestCounted::alive_counts() == 0);
-    }
+    };
+    TEST_CALL(f_move_counted);
 
-    GIVEN("copy counted") {
+    auto f_copy_counted1 = [&]() {
         {
             TestCounted c1;
             TestCounted c2(c1);
@@ -32,9 +33,10 @@ SCENARIO("test Counted") {
             REQUIRE(TestCounted::alive_counts() == 2);
         }
         REQUIRE(TestCounted::alive_counts() == 0);
-    }
+    };
+    TEST_CALL(f_copy_counted1);
 
-    GIVEN("copy counted") {
+    auto f_copy_counted2 = [&]() {
         TestCounted c1;
         {
             TestCounted c2(std::move(c1));
@@ -44,16 +46,17 @@ SCENARIO("test Counted") {
         }
         REQUIRE(TestCounted::alive_counts() == 1);
         REQUIRE(c1.id_ == -1);
-    }
+    };
+    TEST_CALL(f_copy_counted2);
 }
 
-SCENARIO("test result T") {
-    using TestCounted = Counted<{
+static void test_result_T() {
+    using TestCounted = Counted<CountedPolicy{
         .move_assignable=false,
         .copy_assignable=false
     }>;
     TestCounted::reset_count();
-    GIVEN("result set lvalue") {
+    auto f_result_set_lvalue = [&]() {
         Result<TestCounted> res;
         REQUIRE(! res.has_value());
         {
@@ -66,9 +69,10 @@ SCENARIO("test result T") {
         }
         REQUIRE(TestCounted::alive_counts() == 1);
         REQUIRE(res.has_value());
-    }
+    };
+    TEST_CALL(f_result_set_lvalue);
 
-    GIVEN("result set rvalue") {
+    auto f_result_set_rvalue =[&]() {
         Result<TestCounted> res;
         REQUIRE(! res.has_value());
         {
@@ -81,9 +85,10 @@ SCENARIO("test result T") {
         }
         REQUIRE(TestCounted::alive_counts() == 1);
         REQUIRE(res.has_value());
-    }
+    };
+    TEST_CALL(f_result_set_rvalue);
 
-    GIVEN("lvalue result") {
+    auto f_lvalue_result = [&]() {
         Result<TestCounted> res;
         res.set_value(TestCounted{});
         REQUIRE(res.has_value());
@@ -104,9 +109,10 @@ SCENARIO("test result T") {
             }
         }
         REQUIRE(TestCounted::alive_counts() == 1);
-    }
+    };
+    TEST_CALL(f_lvalue_result);
 
-    GIVEN("rvalue result") {
+    auto f_rvalue_result =[&]() {
         Result<TestCounted> res;
         res.set_value(TestCounted{});
         REQUIRE(res.has_value());
@@ -118,11 +124,12 @@ SCENARIO("test result T") {
             REQUIRE(TestCounted::alive_counts() == 2);
         }
         REQUIRE(TestCounted::alive_counts() == 1);
-    }
+    };
+    TEST_CALL(f_rvalue_result);
 
 }
 
-SCENARIO("test Counted for Task") {
+static void test_Counted_for_Task() {
     using TestCounted = Counted<default_counted_policy>;
     TestCounted::reset_count();
 
@@ -131,7 +138,7 @@ SCENARIO("test Counted for Task") {
     };
     bool called{false};
 
-    GIVEN("return a counted") {
+    auto f_return_a_counted= [&]() {
         asyncio::run([&]() -> Task<> {
             auto c = co_await build_count();
             REQUIRE(TestCounted::alive_counts() == 1);
@@ -141,9 +148,10 @@ SCENARIO("test Counted for Task") {
             called = true;
         }());
         REQUIRE(called);
-    }
+    };
+    TEST_CALL(f_return_a_counted);
 
-    GIVEN("return a lvalue counted") {
+    auto f_return_a_lvalue_counted =[&]() {
         asyncio::run([&]() -> Task<> {
             auto t = build_count();
             {
@@ -165,35 +173,38 @@ SCENARIO("test Counted for Task") {
             called = true;
         }());
         REQUIRE(called);
-    }
+    };
+    TEST_CALL(f_return_a_lvalue_counted);
 
-    GIVEN("rvalue task: get_result") {
+    auto f_rvalue_task_get_result= [&]() {
         auto c = asyncio::run(build_count());
         REQUIRE(TestCounted::alive_counts() == 1);
         REQUIRE(TestCounted::move_construct_counts == 2);
         REQUIRE(TestCounted::default_construct_counts == 1);
         REQUIRE(TestCounted::copy_construct_counts == 0);
-    }
+    };
+    TEST_CALL(f_rvalue_task_get_result);
 
-    GIVEN("lvalue task: get_result") {
+    auto f_lvalue_task_get_result =[&]() {
         auto t = build_count();
         auto c = asyncio::run(t);
         REQUIRE(TestCounted::alive_counts() == 2);
         REQUIRE(TestCounted::move_construct_counts == 1);
         REQUIRE(TestCounted::default_construct_counts == 1);
         REQUIRE(TestCounted::copy_construct_counts == 1);
-    }
+    };
+    TEST_CALL(f_lvalue_task_get_result);
 }
 
 
-SCENARIO("test pass parameters to the coroutine frame") {
-    using TestCounted = Counted<{
+static void test_pass_parameters_to_the_coroutine_frame() {
+    using TestCounted = Counted<CountedPolicy{
         .move_assignable=false,
         .copy_assignable=false
     }>;
     TestCounted::reset_count();
 
-    GIVEN("pass by rvalue") {
+    auto f_pass_by_rvalue = [&]() {
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(count.alive_counts() == 2);
             co_return;
@@ -202,9 +213,10 @@ SCENARIO("test pass parameters to the coroutine frame") {
         REQUIRE(TestCounted::default_construct_counts == 1);
         REQUIRE(TestCounted::move_construct_counts == 1);
         REQUIRE(TestCounted::alive_counts() == 0);
-    }
+    };
+    TEST_CALL(f_pass_by_rvalue);
 
-    GIVEN("pass by lvalue") {
+    auto f_pass_by_lvalue = [&]() {
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(TestCounted::copy_construct_counts == 1);
             REQUIRE(TestCounted::move_construct_counts == 1);
@@ -219,9 +231,10 @@ SCENARIO("test pass parameters to the coroutine frame") {
         REQUIRE(TestCounted::move_construct_counts == 1);
         REQUIRE(TestCounted::alive_counts() == 1);
         REQUIRE(count.id_ != -1);
-    }
+    };
+    TEST_CALL(f_pass_by_lvalue);
 
-    GIVEN("pass by xvalue") {
+    auto f_pass_by_xvalue =[&]() {
         auto coro = [](TestCounted count) -> Task<> {
             REQUIRE(TestCounted::copy_construct_counts == 0);
             REQUIRE(TestCounted::move_construct_counts == 2);
@@ -237,9 +250,10 @@ SCENARIO("test pass parameters to the coroutine frame") {
         REQUIRE(TestCounted::move_construct_counts == 2);
         REQUIRE(TestCounted::alive_counts() == 1);
         REQUIRE(count.id_ == -1);
-    }
+    };
+    TEST_CALL(f_pass_by_xvalue);
 
-    GIVEN("pass by lvalue ref") {
+    auto f_pass_by_lvalue_ref = [&] {
         TestCounted count;
         auto coro = [&](TestCounted& cnt) -> Task<> {
             REQUIRE(cnt.alive_counts() == 1);
@@ -250,9 +264,10 @@ SCENARIO("test pass parameters to the coroutine frame") {
         REQUIRE(TestCounted::default_construct_counts == 1);
         REQUIRE(TestCounted::construct_counts() == 1);
         REQUIRE(TestCounted::alive_counts() == 1);
-    }
+    };
+    TEST_CALL(f_pass_by_lvalue_ref);
 
-    GIVEN("pass by rvalue ref") {
+    auto f_pass_by_rvalue_ref =[&]() {
         auto coro = [](TestCounted&& count) -> Task<> {
             REQUIRE(count.alive_counts() == 1);
             co_return;
@@ -261,5 +276,14 @@ SCENARIO("test pass parameters to the coroutine frame") {
         REQUIRE(TestCounted::default_construct_counts == 1);
         REQUIRE(TestCounted::construct_counts() == 1);
         REQUIRE(TestCounted::alive_counts() == 0);
-    }
+    };
+    TEST_CALL(f_pass_by_rvalue_ref);
+}
+
+int main() {
+    TEST_CALL(test_Counted);
+    TEST_CALL(test_result_T);
+    TEST_CALL(test_Counted_for_Task);
+    TEST_CALL(test_pass_parameters_to_the_coroutine_frame);
+    return 0;
 }

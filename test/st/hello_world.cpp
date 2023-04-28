@@ -2,7 +2,6 @@
 // Created by netcan on 2021/09/06.
 //
 #include <iostream>
-#include <fmt/core.h>
 #include <string_view>
 #include <string>
 #include <asyncio/task.h>
@@ -21,10 +20,10 @@ Task<std::string_view> world() {
 }
 
 Task<std::string> hello_world() {
-    co_return fmt::format("{} {}", co_await hello(), co_await world());
+    co_return std::string(co_await hello()) + " " + std::string(co_await world());
 }
 
 int main() {
-    fmt::print("run result: {}\n", asyncio::run(hello_world()));
+    printf("run result: %s\n", asyncio::run(hello_world()).c_str());
     return 0;
 }

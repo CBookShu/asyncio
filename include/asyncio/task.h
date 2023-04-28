@@ -4,6 +4,7 @@
 
 #ifndef ASYNCIO_TASK_H
 #define ASYNCIO_TASK_H
+#include <iostream>
 #include <asyncio/handle.h>
 #include <asyncio/event_loop.h>
 #include <asyncio/result.h>
@@ -54,25 +55,20 @@ struct Task: private NonCopyable {
         }
         coro_handle self_coro_ {};
     };
+
+    struct Awaiter : AwaiterBase {
+        decltype(auto) await_resume() const {
+            if (!AwaiterBase::self_coro_) [[unlikely]]
+            { throw InvalidFuture{}; }
+            return AwaiterBase::self_coro_.promise().result();
+        }
+    };
+
     auto operator co_await() const & noexcept {
-        struct Awaiter: AwaiterBase {
-            decltype(auto) await_resume() const {
-                if (! AwaiterBase::self_coro_) [[unlikely]]
-                { throw InvalidFuture{}; }
-                return AwaiterBase::self_coro_.promise().result();
-            }
-        };
         return Awaiter {handle_};
     }
 
     auto operator co_await() const && noexcept {
-        struct Awaiter: AwaiterBase {
-            decltype(auto) await_resume() const {
-                if (! AwaiterBase::self_coro_) [[unlikely]]
-                { throw InvalidFuture{}; }
-                return std::move(AwaiterBase::self_coro_.promise()).result();
-            }
-        };
         return Awaiter {handle_};
     }
 
@@ -116,9 +112,9 @@ struct Task: private NonCopyable {
         }
         const std::source_location& get_frame_info() const final { return frame_info_; }
         void dump_backtrace(size_t depth = 0) const final {
-            fmt::print("[{}] {}\n", depth, frame_name());
+            std::cout << "[" << depth << "] " << frame_name() << std::endl;
             if (continuation_) { continuation_->dump_backtrace(depth + 1); }
-            else { fmt::print("\n"); }
+            else { std::cout << std::endl;}
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

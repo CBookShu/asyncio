@@ -12,12 +12,16 @@
 #include <asyncio/task.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#if defined(_WIN32)
+#include <WinSock2.h>
+#else
 #include <sys/socket.h>
+#endif
 #include <system_error>
 
 ASYNCIO_NS_BEGIN
 namespace detail {
-Task<bool> connect(int fd, const sockaddr *addr, socklen_t len) noexcept {
+Task<bool> connect(Socket_t fd, const sockaddr *addr, socklen_t len) noexcept {
     int rc = ::connect(fd, addr, len);
     if (rc == 0) { co_return true; }
     if (rc < 0 && errno != EINPROGRESS) {
@@ -27,7 +31,7 @@ Task<bool> connect(int fd, const sockaddr *addr, socklen_t len) noexcept {
     auto& loop = get_event_loop();
     co_await loop.wait_event(ev);
 
-    int result{0};
+    char result{0};
     socklen_t result_len = sizeof(result);
     if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &result, &result_len) < 0) {
         // error, fail somehow, close socket
@@ -49,7 +53,7 @@ Task<Stream> open_connection(std::string_view ip, uint16_t port) {
     }
     finally{ freeaddrinfo(server_info); };
 
-    int sockfd = -1;
+    Socket_t sockfd = INVALID_SOCKET;
     for (auto p = server_info; p != nullptr; p = p->ai_next) {
         if ((sockfd = ::socket(p->ai_family, p->ai_socktype | SOCK_NONBLOCK, p->ai_protocol)) == -1) {
             continue;
@@ -59,9 +63,9 @@ Task<Stream> open_connection(std::string_view ip, uint16_t port) {
             break;
         }
         close(sockfd);
-        sockfd = -1;
+        sockfd = INVALID_SOCKET;
     }
-    if (sockfd == -1) {
+    if (sockfd == INVALID_SOCKET) {
         throw std::system_error(std::make_error_code(std::errc::address_not_available));
     }
 

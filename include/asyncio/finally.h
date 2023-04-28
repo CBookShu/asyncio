@@ -54,12 +54,12 @@ private:
 };
 
 template<class F>
-inline FinalAction<F> _finally(const F &f) noexcept {
+inline FinalAction<F> _finally_(const F &f) noexcept {
     return FinalAction<F>(f);
 }
 
 template<class F>
-inline FinalAction<F> _finally(F &&f) noexcept {
+inline FinalAction<F> _finally_(F &&f) noexcept {
     return FinalAction<F>(std::forward<F>(f));
 }
 
@@ -67,7 +67,7 @@ inline FinalAction<F> _finally(F &&f) noexcept {
 #define concat2(a, b)       concat1(a, b)
 #define _finally_object     concat2(_finally_object_, __COUNTER__)
 #define finally             ASYNCIO_NS::FinalAction _finally_object = [&]()
-#define finally2(func)      ASYNCIO_NS::FinalAction _finally_object = ASYNCIO_NS::_finally(func)
+#define finally2(func)      ASYNCIO_NS::FinalAction _finally_object = ASYNCIO_NS::_finally_(func)
 
 ASYNCIO_NS_END
 

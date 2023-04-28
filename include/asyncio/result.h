@@ -30,7 +30,10 @@ struct Result {
             std::rethrow_exception(*exception);
         }
         if (auto res = std::get_if<T>(&result_)) {
-            return *res;
+            if constexpr (std::is_copy_constructible_v<T>) {
+                return *res;
+            }
+            return std::move(*res);
         }
         throw NoResultError{};
     }

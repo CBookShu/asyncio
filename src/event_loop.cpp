@@ -37,7 +37,7 @@ void EventLoop::run_once() {
         timeout.emplace(0);
     } else if (! schedule_.empty()) {
         auto&& [when, _] = schedule_[0];
-        timeout = std::max(when - time(), MSDuration(0));
+        timeout = std::max<>(when - time(), MSDuration(0));
     }
 
     auto event_lists = selector_.select(timeout.has_value() ? timeout->count() : -1);

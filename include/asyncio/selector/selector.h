@@ -15,6 +15,11 @@ using Selector = KQueueSelector;
 namespace ASYNCIO_NS {
 using Selector = EpollSelector;
 }
+#elif defined(_WIN32)
+#include <asyncio/selector/win32_selector.h>
+namespace ASYNCIO_NS {
+using Selector = Win32Selector;
+}
 #endif
 
 #endif //ASYNCIO_SELECTOR_H

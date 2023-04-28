@@ -4,7 +4,6 @@
 
 #ifndef ASYNCIO_START_SERVER_H
 #define ASYNCIO_START_SERVER_H
-#include "fmt/core.h"
 #include <asyncio/asyncio_ns.h>
 #include <asyncio/stream.h>
 #include <asyncio/finally.h>
@@ -24,7 +23,7 @@ constexpr static size_t max_connect_count = 16;
 
 template<concepts::ConnectCb CONNECT_CB>
 struct Server: NonCopyable {
-    Server(CONNECT_CB cb, int fd): connect_cb_(cb), fd_(fd) {}
+    Server(CONNECT_CB cb, Socket_t fd): connect_cb_(cb), fd_(fd) {}
     Server(Server&& other): connect_cb_(other.connect_cb_),
                             fd_{std::exchange(other.fd_, -1) } {}
     ~Server() { close(); }
@@ -38,7 +37,7 @@ struct Server: NonCopyable {
             sockaddr_storage remoteaddr{};
             socklen_t addrlen = sizeof(remoteaddr);
             co_await ev_awaiter;
-            int clientfd = ::accept(fd_, reinterpret_cast<sockaddr*>(&remoteaddr), &addrlen);
+            Socket_t clientfd = ::accept(fd_, reinterpret_cast<sockaddr*>(&remoteaddr), &addrlen);
             if (clientfd == -1) { continue; }
             connected.emplace_back(schedule_task(connect_cb_(Stream{clientfd, remoteaddr})));
             // garbage collect
@@ -61,13 +60,13 @@ private:
 
 private:
     void close() {
-        if (fd_ > 0) { ::close(fd_); }
-        fd_ = -1;
+        if (fd_ != INVALID_SOCKET) { ::close(fd_); }
+        fd_ = INVALID_SOCKET;
     }
 
 private:
     [[no_unique_address]] CONNECT_CB connect_cb_;
-    int fd_{-1};
+    Socket_t fd_{INVALID_SOCKET};
 };
 
 template<concepts::ConnectCb CONNECT_CB>
@@ -82,13 +81,13 @@ Task<Server<CONNECT_CB>> start_server(CONNECT_CB cb, std::string_view ip, uint16
     }
     finally{ freeaddrinfo(server_info); };
 
-    int serverfd = -1;
+    Socket_t serverfd = -1;
     for (auto p = server_info; p != nullptr; p = p->ai_next) {
         if ((serverfd = ::socket(p->ai_family, p->ai_socktype | SOCK_NONBLOCK, p->ai_protocol)) == -1) {
             continue;
         }
         socket::set_blocking(serverfd, false);
-        int yes = 1;
+        char yes = 1;
         // lose the pesky "address already in use" error message
         setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
         if ( bind(serverfd, p->ai_addr, p->ai_addrlen) == 0) {

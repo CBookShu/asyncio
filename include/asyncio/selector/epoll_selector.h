@@ -4,7 +4,6 @@
 
 #ifndef ASYNCIO_EPOLL_SELECTOR_H
 #define ASYNCIO_EPOLL_SELECTOR_H
-#include "fmt/core.h"
 #include <asyncio/asyncio_ns.h>
 #include <asyncio/selector/event.h>
 #include <unistd.h>

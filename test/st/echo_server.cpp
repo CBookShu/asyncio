@@ -3,7 +3,6 @@
 #include <asyncio/runner.h>
 #include <asyncio/start_server.h>
 #include <asyncio/task.h>
-#include <fmt/core.h>
 
 using asyncio::Stream;
 using asyncio::Task;
@@ -41,7 +40,7 @@ Task<> echo_server() {
     auto server = co_await asyncio::start_server(
             handle_echo, "127.0.0.1", 8888);
 
-    fmt::print("Serving on 127.0.0.1:8888\n");
+    printf("Serving on 127.0.0.1:8888\n");
 
     co_await server.serve_forever();
 }
