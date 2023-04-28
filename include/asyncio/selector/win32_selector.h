@@ -34,7 +34,7 @@ public:
 	std::vector<Event> select(int timeout /* ms */) {
 		using namespace std::chrono_literals;
 
-		errno = 0;
+		SetLastError(0);
 		std::vector< WSAPOLLFD> pollfds; pollfds.reserve(fds_.size());
 		std::vector<void*> uds; uds.reserve(fds_.size());
 		for (auto& it : fds_) {

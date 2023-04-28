@@ -56,6 +56,31 @@ struct Event {
     Flags flags;
     HandleInfo handle_info;
 };
+
+static inline int lasterror() {
+#if defined(_WIN32)
+    return WSAGetLastError();
+#else
+    return errno;
+#endif
+}
+
+static inline bool checkerror() {
+    auto e = lasterror();
+#if defined(_WIN32)
+    if (e == WSAEWOULDBLOCK) {
+        return false;
+    }
+    errno = e;
+    return true;
+#else
+    if (errno == EINPROGRESS) {
+        return false;
+    }
+    return true;
+#endif
+}
+
 ASYNCIO_NS_END
 
 #endif //ASYNCIO_EVENT_H

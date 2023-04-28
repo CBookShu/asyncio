@@ -100,7 +100,7 @@ Task<Server<CONNECT_CB>> start_server(CONNECT_CB cb, std::string_view ip, uint16
         throw std::system_error(std::make_error_code(std::errc::address_not_available));
     }
 
-    if (listen(serverfd, max_connect_count) == -1) {
+    if (listen(serverfd, max_connect_count) == -1 && checkerror()) {
         throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
     }
 

@@ -94,7 +94,7 @@ struct Stream: NonCopyable {
         Buffer result(sz, 0);
         co_await read_awaiter_;
         sz = ::recv(read_fd_, result.data(), result.size(), 0);
-        if (sz == -1) {
+        if (sz == -1 && checkerror()) {
             throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
         }
         result.resize(sz);
@@ -108,7 +108,7 @@ struct Stream: NonCopyable {
             // FIXME: how to handle write event?
             // co_await write_awaiter_;
             ssize_t sz = ::send(write_fd_, buf.data() + total_write, buf.size() - total_write, 0);
-            if (sz == -1) {
+            if (sz == -1 && checkerror()) {
                 throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
             }
             total_write += sz;
@@ -129,7 +129,7 @@ private:
         do {
             co_await read_awaiter_;
             current_read = ::recv(read_fd_, result.data() + total_read, chunk_size, 0);
-            if (current_read == -1) {
+            if (current_read == -1 && checkerror()) {
                 throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
             }
             if (current_read < chunk_size) { result.resize(total_read + current_read); }

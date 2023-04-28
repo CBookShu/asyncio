@@ -1,5 +1,4 @@
 #include <asyncio/stream.h>
-#include <arpa/inet.h>
 #include <asyncio/runner.h>
 #include <asyncio/start_server.h>
 #include <asyncio/task.h>

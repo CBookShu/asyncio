@@ -4,6 +4,15 @@
     <Filter Include="src">
       <UniqueIdentifier>{491FBF00-292E-479F-8C8F-7A2AC045023A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{d8a5de7e-a441-47e6-8b7a-d57fb613abb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="headers\concept">
+      <UniqueIdentifier>{189ec1c0-2bbd-44fb-9d26-e567b7fa497a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="headers\selector">
+      <UniqueIdentifier>{866b4040-15ae-47aa-a663-1eab377d3051}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\event_loop.cpp">
@@ -11,5 +20,83 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\asyncio\asyncio_ns.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\callstack.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\event_loop.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\exception.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\finally.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\gather.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\handle.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\noncopyable.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\open_connection.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\result.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\runner.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\schedule_task.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\sleep.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\start_server.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\stream.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\task.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\void_value.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\wait_for.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\concept\awaitable.h">
+      <Filter>headers\concept</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\concept\future.h">
+      <Filter>headers\concept</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\concept\promise.h">
+      <Filter>headers\concept</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\selector\epoll_selector.h">
+      <Filter>headers\selector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\selector\event.h">
+      <Filter>headers\selector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\selector\kqueue_selector.h">
+      <Filter>headers\selector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\selector\selector.h">
+      <Filter>headers\selector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\asyncio\selector\win32_selector.h">
+      <Filter>headers\selector</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

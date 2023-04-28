@@ -12,6 +12,7 @@
 #include <asyncio/start_server.h>
 #include <asyncio/open_connection.h>
 #include <functional>
+#include <cstddef>
 #include "../test_tool.h"
 
 using namespace ASYNCIO_NS;
@@ -24,6 +25,7 @@ Task<> coro_depth_n(std::vector<int>& result) {
         co_await coro_depth_n<N - 1>(result);
         result.push_back(N * 10);
     }
+    co_return;
 }
 
 static void test_Task_await() {
@@ -82,7 +84,7 @@ static void Task__test() {
 
 static void test_Task_await_result_value() {
     GIVEN("square_sum 3, 4") {
-        auto square_sum = [&](int x, int y) -> Task<int> {
+        auto square_sum = [&](int x, int y) -> Task<int64_t> {
             auto tx = square(x);
             auto x2 = co_await tx;
             auto y2 = co_await square(y);
@@ -92,8 +94,8 @@ static void test_Task_await_result_value() {
     }
 
     GIVEN("fibonacci") {
-        std::function<auto(size_t) -> Task<size_t>> fibo =
-            [&](size_t n) -> Task<size_t> {
+        std::function<Task<std::size_t>(std::size_t)> fibo =
+            [&](std::size_t n) -> Task<std::size_t> {
                 if (n <= 1) { co_return n; }
                 co_return co_await fibo(n - 1) +
                           co_await fibo(n - 2);

@@ -24,16 +24,16 @@ namespace detail {
 Task<bool> connect(Socket_t fd, const sockaddr *addr, socklen_t len) noexcept {
     int rc = ::connect(fd, addr, len);
     if (rc == 0) { co_return true; }
-    if (rc < 0 && errno != EINPROGRESS) {
+    if (rc < 0 && checkerror()) {
         throw std::system_error(std::make_error_code(static_cast<std::errc>(errno)));
     }
     Event ev { .fd = fd, .flags = Event::Flags::EVENT_WRITE };
     auto& loop = get_event_loop();
     co_await loop.wait_event(ev);
 
-    char result{0};
+    int result{0};
     socklen_t result_len = sizeof(result);
-    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &result, &result_len) < 0) {
+    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*) & result, &result_len) < 0) {
         // error, fail somehow, close socket
         co_return false;
     }

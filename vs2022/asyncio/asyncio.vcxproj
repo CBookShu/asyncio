@@ -109,6 +109,32 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\asyncio\asyncio_ns.h" />
+    <ClInclude Include="..\..\include\asyncio\callstack.h" />
+    <ClInclude Include="..\..\include\asyncio\concept\awaitable.h" />
+    <ClInclude Include="..\..\include\asyncio\concept\future.h" />
+    <ClInclude Include="..\..\include\asyncio\concept\promise.h" />
+    <ClInclude Include="..\..\include\asyncio\event_loop.h" />
+    <ClInclude Include="..\..\include\asyncio\exception.h" />
+    <ClInclude Include="..\..\include\asyncio\finally.h" />
+    <ClInclude Include="..\..\include\asyncio\gather.h" />
+    <ClInclude Include="..\..\include\asyncio\handle.h" />
+    <ClInclude Include="..\..\include\asyncio\noncopyable.h" />
+    <ClInclude Include="..\..\include\asyncio\open_connection.h" />
+    <ClInclude Include="..\..\include\asyncio\result.h" />
+    <ClInclude Include="..\..\include\asyncio\runner.h" />
+    <ClInclude Include="..\..\include\asyncio\schedule_task.h" />
+    <ClInclude Include="..\..\include\asyncio\selector\epoll_selector.h" />
+    <ClInclude Include="..\..\include\asyncio\selector\event.h" />
+    <ClInclude Include="..\..\include\asyncio\selector\kqueue_selector.h" />
+    <ClInclude Include="..\..\include\asyncio\selector\selector.h" />
+    <ClInclude Include="..\..\include\asyncio\selector\win32_selector.h" />
+    <ClInclude Include="..\..\include\asyncio\sleep.h" />
+    <ClInclude Include="..\..\include\asyncio\start_server.h" />
+    <ClInclude Include="..\..\include\asyncio\stream.h" />
+    <ClInclude Include="..\..\include\asyncio\task.h" />
+    <ClInclude Include="..\..\include\asyncio\void_value.h" />
+    <ClInclude Include="..\..\include\asyncio\wait_for.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
